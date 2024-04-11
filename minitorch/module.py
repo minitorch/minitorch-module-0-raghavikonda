@@ -1,6 +1,6 @@
-from __future__ import annotations
+from __future__ import annotations  # Importing future annotations for type hints
 
-from typing import Any, Dict, Optional, Sequence, Tuple
+from typing import Any, Dict, Optional, Sequence, Tuple  # Importing necessary typing modules
 
 
 class Module:
@@ -12,49 +12,65 @@ class Module:
         _modules : Storage of the child modules
         _parameters : Storage of the module's parameters
         training : Whether the module is in training mode or evaluation mode
-
     """
 
-    _modules: Dict[str, Module]
-    _parameters: Dict[str, Parameter]
-    training: bool
+    _modules: Dict[str, Module]  # Dictionary to store child modules
+    _parameters: Dict[str, Parameter]  # Dictionary to store parameters
+    training: bool  # Boolean flag indicating whether the module is in training mode or evaluation mode
 
     def __init__(self) -> None:
+        # Initialize dictionaries to store modules and parameters, and set training mode to True
         self._modules = {}
         self._parameters = {}
         self.training = True
 
     def modules(self) -> Sequence[Module]:
         "Return the direct child modules of this module."
-        m: Dict[str, Module] = self.__dict__["_modules"]
-        return list(m.values())
+        m: Dict[str, Module] = self.__dict__["_modules"]  # Get the dictionary of child modules
+        return list(m.values())  # Return a list of child modules
 
     def train(self) -> None:
-        "Set the mode of this module and all descendent modules to `train`."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        "Set the mode of this module and all descendant modules to `train`."
+        # Set the training mode to True for self and all descendant modules
+        for module in [self] + self.modules():
+            module.training = True
 
     def eval(self) -> None:
-        "Set the mode of this module and all descendent modules to `eval`."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        "Set the mode of this module and all descendant modules to `eval`."
+        # Set the training mode to False for self and all descendant modules
+        for module in [self] + self.modules():
+            module.training = False
 
     def named_parameters(self) -> Sequence[Tuple[str, Parameter]]:
         """
-        Collect all the parameters of this module and its descendents.
-
+        Collect all the parameters of this module and its descendants.
 
         Returns:
-            The name and `Parameter` of each ancestor parameter.
+            The name and `Parameter` of each parameter.
         """
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        # Collect parameters from this module and its descendants
+        params = []
+        for parameter, value in self._parameters.items():
+            params.append((parameter, value))
+
+        for mod_name, module in self._modules.items():
+            for parameter, value in module._parameters.items():
+                params.append((f'{mod_name}.'+parameter, value))
+
+        parameters: Sequence[Tuple[str, Parameter]] = params
+        return parameters
 
     def parameters(self) -> Sequence[Parameter]:
-        "Enumerate over all the parameters of this module and its descendents."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        "Enumerate over all the parameters of this module and its descendants."
+        # Enumerate over parameters from this module and its descendants
+        params = []
+        for module in [self] + self.modules():
+            for value in module._parameters.values():
+                params.append(value)
 
+        parameters: Sequence[Parameter] = params
+        return parameters
+        
     def add_parameter(self, k: str, v: Any) -> Parameter:
         """
         Manually add a parameter. Useful helper for scalar parameters.
@@ -66,28 +82,29 @@ class Module:
         Returns:
             Newly created parameter.
         """
-        val = Parameter(v, k)
-        self.__dict__["_parameters"][k] = val
+        val = Parameter(v, k)  # Create a new Parameter object with provided value and name
+        self.__dict__["_parameters"][k] = val  # Add the parameter to the dictionary of parameters
         return val
 
     def __setattr__(self, key: str, val: Parameter) -> None:
         if isinstance(val, Parameter):
-            self.__dict__["_parameters"][key] = val
+            self.__dict__["_parameters"][key] = val  # If the value is a Parameter, add it to the dictionary of parameters
         elif isinstance(val, Module):
-            self.__dict__["_modules"][key] = val
+            self.__dict__["_modules"][key] = val  # If the value is a Module, add it to the dictionary of modules
         else:
             super().__setattr__(key, val)
 
     def __getattr__(self, key: str) -> Any:
         if key in self.__dict__["_parameters"]:
-            return self.__dict__["_parameters"][key]
+            return self.__dict__["_parameters"][key]  # If the key is found in the dictionary of parameters, return the corresponding value
 
         if key in self.__dict__["_modules"]:
-            return self.__dict__["_modules"][key]
+            return self.__dict__["_modules"][key]  # If the key is found in the dictionary of modules, return the corresponding value
+        
         return None
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        return self.forward(*args, **kwargs)
+        return self.forward(*args, **kwargs)  # Call the forward method of the module
 
     def __repr__(self) -> str:
         def _addindent(s_: str, numSpaces: int) -> str:
@@ -110,7 +127,6 @@ class Module:
 
         main_str = self.__class__.__name__ + "("
         if lines:
-            # simple one-liner info, which most builtin Modules will use
             main_str += "\n  " + "\n  ".join(lines) + "\n"
 
         main_str += ")"
@@ -146,3 +162,4 @@ class Parameter:
 
     def __str__(self) -> str:
         return str(self.value)
+
