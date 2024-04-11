@@ -6,8 +6,7 @@ from typing import Any, Dict, Optional, Sequence, Tuple  # Importing necessary t
 class Module:
     """
     Modules form a tree that store parameters and other
-    submodules. They make up the basis of neural network stacks.
-
+    submodules. They make up the basis of neural network stacks
     Attributes:
         _modules : Storage of the child modules
         _parameters : Storage of the module's parameters
